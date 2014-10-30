@@ -25,7 +25,7 @@ public class AppTest extends TestCase{
 	public void testMuseExtraction(){
 		
 		
-		String inputPath = TEST_FILE_PATH + "muse/";
+		String inputPath = TEST_FILE_PATH + "muse/"; 
 		String fileName = "1304_54QC_waveforms.xml";
 		
 		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.MUSEXML;
