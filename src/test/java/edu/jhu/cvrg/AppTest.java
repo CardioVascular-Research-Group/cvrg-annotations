@@ -15,79 +15,66 @@ import edu.jhu.cvrg.annotations.processors.SchillerAnnotationsProcessor;
 import edu.jhu.icm.ecgFormatConverter.ECGformatConverter;
 import edu.jhu.icm.ecgFormatConverter.ECGformatConverter.fileFormat;
 
-/**
- * Unit test for simple App.
- */
 public class AppTest extends TestCase{
 
-	Logger log = Logger.getLogger(this.getClass());
+	private Logger log = Logger.getLogger(this.getClass());
+	protected static String TEST_FILE_PATH = "/opt/liferay/mavenTestResources/annotations/"; 
+	private static String OUTPUT_PATH = TEST_FILE_PATH + "out";
 	
 	@Test
 	public void testMuseExtraction(){
 		
-		String outputPath = "/home/avilard4/test/out";
 		
-		String inputPath = "/home/avilard4/test/muse/";
-		//String fileName = "ecg_97083117_1.xml";
+		String inputPath = TEST_FILE_PATH + "muse/";
 		String fileName = "1304_54QC_waveforms.xml";
-		//String fileName = "MUSE_20080710_165457_96000.xml";
 		
 		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.MUSEXML;
 		ECGformatConverter.fileFormat outputFormat = ECGformatConverter.fileFormat.WFDB;
 		
-		dataConversion(outputPath, inputPath, fileName, inputFormat,outputFormat);
+		dataConversion(OUTPUT_PATH, inputPath, fileName, inputFormat,outputFormat);
 	}
 	
 	@Test
 	public void testSchillerExtraction(){
 		
-		String outputPath = "/home/avilard4/test/out";
-		
-		String inputPath = "/home/avilard4/test/schiller/";
-		//String fileName = "APACE1.xml";
+		String inputPath = TEST_FILE_PATH + "schiller/";
 		String fileName = "APACE2.xml";
-		//String fileName = "MUSE_20080710_165457_96000.xml";
 		
 		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.SCHILLER;
 		ECGformatConverter.fileFormat outputFormat = ECGformatConverter.fileFormat.WFDB;
 		
-		dataConversion(outputPath, inputPath, fileName, inputFormat,outputFormat);
+		dataConversion(OUTPUT_PATH, inputPath, fileName, inputFormat,outputFormat);
 	}
 
 	@Test
 	public void testPhilips103Extraction(){
 		
-		String outputPath = "/home/avilard4/test/out";
-		
-		String inputPath = "/home/avilard4/test/philips103/";
+		String inputPath = TEST_FILE_PATH + "philips103/";
 		String fileName = "ecg_97082525_1.xml";
 		
 		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.PHILIPS103;
 		ECGformatConverter.fileFormat outputFormat = ECGformatConverter.fileFormat.WFDB;
 		
-		dataConversion(outputPath, inputPath, fileName, inputFormat,outputFormat);
+		dataConversion(OUTPUT_PATH, inputPath, fileName, inputFormat,outputFormat);
 	}
 	
 	@Test
 	public void testPhilips104Extraction(){
 		
-		String outputPath = "/home/avilard4/test/out";
-		
-		String inputPath = "/home/avilard4/test/philips104/";
+		String inputPath = TEST_FILE_PATH + "philips104/";
 		String fileName = "ecg_97086579_1.xml";
 		
 		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.PHILIPS104;
 		ECGformatConverter.fileFormat outputFormat = ECGformatConverter.fileFormat.WFDB;
 		
-		dataConversion(outputPath, inputPath, fileName, inputFormat,outputFormat);
+		dataConversion(OUTPUT_PATH, inputPath, fileName, inputFormat,outputFormat);
 	}
 	
 	
 	
 	
-	private void dataConversion(String outputPath, String inputPath,
-			String fileName, ECGformatConverter.fileFormat inputFormat,
-			ECGformatConverter.fileFormat outputFormat) {
+	private void dataConversion(String outputPath, String inputPath, String fileName, ECGformatConverter.fileFormat inputFormat, ECGformatConverter.fileFormat outputFormat) {
+		
 		String errorMessage;
 		ECGformatConverter conv = new ECGformatConverter();
 		log.info(fileName + " this is the file sent to the converter ECGformatConverter()");
