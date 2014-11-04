@@ -50,24 +50,6 @@ public class Philips104Acquirer implements Acquirer {
 	}
 
 	@Override
-	public String getOrderingclinicianUPINId() {
-		if(this.acquirer.getOrderingclinician() != null){
-			return this.acquirer.getOrderingclinician().getId();
-		}else{
-			return null;
-		}
-	}
-
-	@Override
-	public String getOrderingclinicianName() {
-		if(this.acquirer.getOrderingclinician() != null){
-			return this.acquirer.getOrderingclinician().getValue();	
-		}else{
-			return null;
-		}
-	}
-
-	@Override
 	public String getConsultingclinician() {
 		if(this.acquirer.getConsultingclinician() != null){
 			return this.acquirer.getConsultingclinician().getValue() + " (" + this.acquirer.getConsultingclinician().getId() + ')';	

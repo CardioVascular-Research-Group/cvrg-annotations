@@ -9,8 +9,6 @@ public interface Acquirer {
 	public String getDepartmentname();
 	public String getInstitutionid();
 	public String getInstitutionname();
-	public String getOrderingclinicianUPINId();
-	public String getOrderingclinicianName();
 	public String getConsultingclinician();
 	
 }

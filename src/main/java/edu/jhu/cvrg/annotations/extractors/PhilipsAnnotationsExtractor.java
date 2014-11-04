@@ -96,8 +96,7 @@ public abstract class PhilipsAnnotationsExtractor extends AnnotationsExtractor {
 		annotationMap.put("Department Name", acquirer.getDepartmentname());
 		annotationMap.put("Institution ID", acquirer.getInstitutionid());
 		annotationMap.put("Institution Name", acquirer.getInstitutionname());
-		annotationMap.put("Ordering Clinician UPIN/ID", acquirer.getOrderingclinicianUPINId());
-		annotationMap.put("Ordering Clinician Name ", acquirer.getOrderingclinicianName());
+		
 		annotationMap.put("Consulting Clinician", acquirer.getConsultingclinician());
 		
 		annotationMap.put("Signal Resolution", signalProperties.getSignalresolution());
@@ -142,8 +141,11 @@ public abstract class PhilipsAnnotationsExtractor extends AnnotationsExtractor {
 		annotationMap.put("ST Segment Offset", leadMeasurement.getStend());
 		annotationMap.put("ST Segment Duration", leadMeasurement.getStdur());
 		annotationMap.put("ST Segment Slope", leadMeasurement.getStslope());
-		//TODO Check this return
-		annotationMap.put("ST Segment Shape", leadMeasurement.getStshape().toString());
+		
+		if(leadMeasurement.getStshape() != null){
+			annotationMap.put("ST Segment Shape", leadMeasurement.getStshape().toString());	
+		}
+		
 		annotationMap.put("T Amplitude", leadMeasurement.getTamp());
 		annotationMap.put("T Duration", leadMeasurement.getTdur());
 		annotationMap.put("T Area", leadMeasurement.getTarea());

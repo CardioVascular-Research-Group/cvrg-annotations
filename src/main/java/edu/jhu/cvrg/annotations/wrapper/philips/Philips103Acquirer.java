@@ -46,16 +46,6 @@ public class Philips103Acquirer implements Acquirer {
 	}
 
 	@Override
-	public String getOrderingclinicianUPINId() {
-		return this.acquirer.getOrderingclinicianUPIN();
-	}
-
-	@Override
-	public String getOrderingclinicianName() {
-		return this.acquirer.getOrderingclinicianname();
-	}
-
-	@Override
 	public String getConsultingclinician() {
 		return this.acquirer.getReviewingclinician();
 	}

@@ -137,7 +137,6 @@ public class Philips103AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		
 		Signalcharacteristics signalProperties = (Signalcharacteristics)dataAcquisition.getSignalcharacteristics();
 		
-		//TODO check thess returns
 		if(signalProperties.getLeadset() != null){
 			dataMappings.put("Lead Set", signalProperties.getLeadset().toString());	
 		}else{
@@ -145,6 +144,10 @@ public class Philips103AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		}
 		
 		this.commomDataAcquisition(dataAcquisition, new Philips103Acquirer(acquirer), new Philips103SignalCharacteristics(signalProperties), dataMappings);
+		
+		//Duplicate information, already extracted on extractOrderInfo method
+//		dataMappings.put("Ordering Clinician UPIN", acquirer.getOrderingclinicianUPIN());
+//		dataMappings.put("Ordering Clinician Name ", acquirer.getOrderingclinicianname());
 		
 		return dataMappings;
 	}

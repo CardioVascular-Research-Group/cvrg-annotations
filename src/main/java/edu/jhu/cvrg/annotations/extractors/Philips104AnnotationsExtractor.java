@@ -332,6 +332,11 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		
 		this.commomDataAcquisition(dataAcquisition, new Philips104Acquirer(acquirerAnn), new Philips104SignalCharacteristics(signalProperties), dataMappings);
 		
+		if(acquirerAnn.getOrderingclinician() != null){
+			dataMappings.put("Ordering Clinician ID", acquirerAnn.getOrderingclinician().getId());
+			dataMappings.put("Ordering Clinician Name ", acquirerAnn.getOrderingclinician().getValue());
+		}
+		
 		return dataMappings;
 	}
 	
