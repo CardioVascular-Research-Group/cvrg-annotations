@@ -56,7 +56,7 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		// TODO:  Skipping pacedetectleads and pacepulses for now, return to them later.
 		
 		// Main set of cross lead measurements
-		annotationMap.put("pacemode", crossLeadMeasurements.getPacemode());
+		annotationMap.put("Pace_Mode", crossLeadMeasurements.getPacemode());
 		
 		commomGlobalElements(new Philips104GlobalMeasurements(crossLeadMeasurements), annotationMap);
 		
@@ -88,8 +88,8 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		annotationMap.put("randomrrpercent", crossLeadMeasurements.getRandomrrpercent());
 		annotationMap.put("regularrrpercent", crossLeadMeasurements.getRegularrrpercent());
 		annotationMap.put("biggestrrgrouppercent", crossLeadMeasurements.getBiggestrrgrouppercent());
-		annotationMap.put("bigemrrintvlacf", crossLeadMeasurements.getBigemrrintvlacf());
-		annotationMap.put("trigemrrintvlacf", crossLeadMeasurements.getTrigemrrintvlacf());
+		annotationMap.put("Bigeminy_RR_Interval_Autocorrelation", crossLeadMeasurements.getBigemrrintvlacf());
+		annotationMap.put("Trigeminy_RR_Interval_Autocorrelation", crossLeadMeasurements.getTrigemrrintvlacf());
 		
 		if(crossLeadMeasurements.getVentrhythm() != null){
 			annotationMap.put("Ventricular Rhythm", crossLeadMeasurements.getVentrhythm().toString());	
@@ -107,24 +107,24 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 			annotationMap.put("nrrgroups", null);
 		}
 		if(crossLeadMeasurements.getFibfreqmhz() != null){
-			annotationMap.put("fibfreqmhz", crossLeadMeasurements.getFibfreqmhz().toString());	
+			annotationMap.put("Fibrillation_Frequency", crossLeadMeasurements.getFibfreqmhz().toString());	
 		}else{
-			annotationMap.put("fibfreqmhz", null);
+			annotationMap.put("Fibrillation_Frequency", null);
 		}
 		if(crossLeadMeasurements.getFibampnv() != null){
-			annotationMap.put("fibampnv", crossLeadMeasurements.getFibampnv().toString());	
+			annotationMap.put("Fibrillation_Amplitude", crossLeadMeasurements.getFibampnv().toString());	
 		}else{
-			annotationMap.put("fibampnv", null);
+			annotationMap.put("Fibrillation_Amplitude", null);
 		}
 		if(crossLeadMeasurements.getFibwidthmhz() != null){
-			annotationMap.put("fibwidthmhz", crossLeadMeasurements.getFibwidthmhz().toString());
+			annotationMap.put("Fibrillation_Width", crossLeadMeasurements.getFibwidthmhz().toString());
 		}else{
-			annotationMap.put("fibwidthmhz", null);
+			annotationMap.put("Fibrillation_Width", null);
 		}
 		if(crossLeadMeasurements.getFibmedianfreqmhz() != null){
-			annotationMap.put("fibmedianfreqmhz", crossLeadMeasurements.getFibmedianfreqmhz().toString());	
+			annotationMap.put("Fibrillation_Median_Frequency", crossLeadMeasurements.getFibmedianfreqmhz().toString());	
 		}else{
-			annotationMap.put("fibmedianfreqmhz", null);
+			annotationMap.put("Fibrillation_Median_Frequency", null);
 		}
 		if(crossLeadMeasurements.getAfltcyclelen() != null){
 			annotationMap.put("afltcyclelen", crossLeadMeasurements.getAfltcyclelen().toString());	
@@ -138,7 +138,7 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		}
 		
 		annotationMap.put("afltacfpeak", crossLeadMeasurements.getAfltacfpeak());
-		annotationMap.put("constantpshapepct", crossLeadMeasurements.getConstantpshapepct());
+		annotationMap.put("Constant_P_Shape_Percentage", crossLeadMeasurements.getConstantpshapepct());
 		annotationMap.put("atrialrateirregpct", crossLeadMeasurements.getAtrialrateirregpct());
 		
 		// the vector loop mxs elements
@@ -277,7 +277,6 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		
 		Map<String, String> dataMappings = new HashMap<String, String>();
 		
-		dataMappings.put("Database ID", dataAcquisition.getDatabaseid());
 		dataMappings.put("Modality", dataAcquisition.getModality());
 		
 		// Now get the acquirer block in the XML
@@ -310,8 +309,8 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		
 		Signalcharacteristics signalProperties = (Signalcharacteristics)dataAcquisition.getSignalcharacteristics();
 		
-		dataMappings.put("High Pass Frequency", String.valueOf(signalProperties.getHipass()));
-		dataMappings.put("Low Pass Frequency", signalProperties.getLowpass().toString());
+		dataMappings.put("High_Pass_Filter", String.valueOf(signalProperties.getHipass()));
+		dataMappings.put("Low_Pass_Filter", signalProperties.getLowpass().toString());
 		dataMappings.put("Notch Filtered", signalProperties.getNotchfiltered().toString());
 		dataMappings.put("Notch Filter Frequency", signalProperties.getNotchfilterfreqs());
 		
@@ -322,7 +321,7 @@ public class Philips104AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		}
 		
 		dataMappings.put("Other Acquisition Information", signalProperties.getOtheracquisitioninfo());
-		dataMappings.put("Electrode Placement", signalProperties.getElectrodeplacement().toString());
+		dataMappings.put("Lead_Placement", signalProperties.getElectrodeplacement().toString());
 		dataMappings.put("Other Placement Information", signalProperties.getOtherplacementinfo());
 		if(signalProperties.getDerivedleads() != null){
 			dataMappings.put("Number of Derived Leads", signalProperties.getDerivedleads().toString());	

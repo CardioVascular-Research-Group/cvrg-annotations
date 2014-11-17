@@ -47,7 +47,7 @@ public class SchillerAnnotationsExtractor extends AnnotationsExtractor {
 		for(AnnotationGlobal globalAnnotation: globalAnnotationsList) {
 			if (globalAnnotation.getValue() != null){
 				String annotationName = globalAnnotation.getName();
-				String ontologyName = "";
+				String ontologyName = null;
 				
 				if (AnnotationMaps.getSchillerAnnotationMap().containsKey(annotationName)){
 					ontologyName = AnnotationMaps.getSchillerAnnotationMap().get(annotationName);
@@ -72,7 +72,7 @@ public class SchillerAnnotationsExtractor extends AnnotationsExtractor {
     	for (AnnotationLead annotationLead : annotationLeadList ) {
 			if (annotationLead.getValue() != null){
 				String annotationName = annotationLead.getName();
-				String ontologyName = "";
+				String ontologyName = null;
 				
 				if (AnnotationMaps.getSchillerAnnotationMap().containsKey(annotationName)){
 					ontologyName = AnnotationMaps.getSchillerAnnotationMap().get(annotationName);

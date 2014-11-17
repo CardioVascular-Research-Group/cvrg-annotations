@@ -64,6 +64,9 @@ public abstract class PhilipsAnnotationsProcessor extends AnnotationsProcessor{
 	
 	protected abstract void processDataAcquisition();
 	
+	/**
+	 * Unused
+	 */
 	protected abstract void processGroupAnnotations();
 	
 	@Override

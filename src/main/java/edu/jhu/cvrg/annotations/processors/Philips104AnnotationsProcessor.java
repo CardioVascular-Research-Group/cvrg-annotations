@@ -72,6 +72,9 @@ public class Philips104AnnotationsProcessor extends PhilipsAnnotationsProcessor 
 	
 	}
 	
+	/**
+	 * Unused
+	 */
 	@Override
 	protected void processGroupAnnotations() {
 		Groupmeasurements allGroupAnnotations = ((Internalmeasurements) restingECGData.getInternalmeasurements()).getGroupmeasurements();

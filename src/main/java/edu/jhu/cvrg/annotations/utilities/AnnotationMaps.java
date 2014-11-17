@@ -50,15 +50,38 @@ public class AnnotationMaps {
 		private static final long serialVersionUID = 6205600584630757507L;
 			{
 				put("AXIS_QRS", "QRS_Wave_Complex_Axis");
-				put("QRS", "QRS_Wave_Duration");
-				put("QT", "QT_Interval");
-				put("QTC", "QT_Corrected");
-				put("Q_DUR", "Q_Wave_Duration");
-				put("Q_AMPL", "Q_Wave_Amplitude");
-				put("R_DUR", "R_Wave_Duration");
-				put("R_AMPL", "R_Wave_Amplitude");
-				put("S_DUR", "S_Wave_Duration");
-				put("S_AMPL", "S_Wave_Amplitude");
+				put("QRS", 		"QRS_Wave_Duration");
+				put("QT", 		"QT_Interval");
+				put("QTC", 		"QT_Corrected");
+				put("Q_DUR", 	"Q_Wave_Duration");
+				put("Q_AMPL", 	"Q_Wave_Amplitude");
+				put("R_DUR", 	"R_Wave_Duration");
+				put("R_AMPL", 	"R_Wave_Amplitude");
+				put("S_DUR", 	"S_Wave_Duration");
+				put("S_AMPL", 	"S_Wave_Amplitude");
+				
+				put("BP_D", 		"Blood_Pressure_Diastolic");
+				put("BP_S", 		"Bigeminy_Premature_Ventricular_Contraction_String");
+				put("HR", 			"Heart_Rate");
+				put("PQ", 			"PR_Interval");
+				put("AXIS_P", 		"P_Wave_Axis");
+				put("P", 			"P_Wave");
+				put("P_OFF", 		"P_Wave_Offset");
+				put("P_ON", 		"P_Wave_Onset");
+				put("QRS_OFF", 		"QRS_Wave_Complex_Offset");
+				put("QRS_ON", 		"QRS_Wave_Complex_Onset");
+				put("RR", 			"RR_Interval");
+				put("T_OFF", 		"T_Wave_Offset");
+				put("P_NEG_AMPL", 	"PP_Wave_Amplitude");
+				put("P_POS_AMPL", 	"P_Wave_Amplitude");
+				put("R-_AMPL", 		"RR_Wave_Amplitude");
+				put("R-_DUR", 		"RR_Wave_Duration");
+				put("S-_AMPL", 		"SS_Wave_Amplitude");
+				put("S-_DUR", 		"SS_Wave_Duration");
+				put("ST_INTEG", 	"ST_Segment_Duration");
+				put("T_NEG_AMPL", 	"TT_Wave_Amplitude");
+				put("T_POS_AMPL", 	"T_Wave_Amplitude");
+				
 	        }
     };
 

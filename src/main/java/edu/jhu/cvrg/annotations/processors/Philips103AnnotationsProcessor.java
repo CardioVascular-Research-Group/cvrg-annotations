@@ -78,7 +78,10 @@ public class Philips103AnnotationsProcessor extends PhilipsAnnotationsProcessor 
 		dataacquisitionRuntime = java.lang.System.currentTimeMillis() - dataacquisitionStarttime;
 
 	}
-
+	/**
+	 * Unused
+	 */
+	
 	@Override
 	protected void processGroupAnnotations() {
 		long groupStarttime = java.lang.System.currentTimeMillis();

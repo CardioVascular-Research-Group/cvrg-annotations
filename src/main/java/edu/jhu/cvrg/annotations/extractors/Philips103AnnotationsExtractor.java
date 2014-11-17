@@ -70,11 +70,11 @@ public class Philips103AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 			}
 		}
 		
-		annotationMap.put("P Onset", globalMeasurements.getPon());
-		annotationMap.put("QRS Onset", globalMeasurements.getQrson());
-		annotationMap.put("QRS Offset", globalMeasurements.getQrsoff());
-		annotationMap.put("T Onset", globalMeasurements.getTon());
-		annotationMap.put("T Offset", globalMeasurements.getToff());
+		annotationMap.put("P_Wave_Onset", globalMeasurements.getPon());
+		annotationMap.put("QRS_Wave_Complex_Onset", globalMeasurements.getQrson());
+		annotationMap.put("QRS_Wave_Complex_Offset", globalMeasurements.getQrsoff());
+		annotationMap.put("T_Wave_Onset", globalMeasurements.getTon());
+		annotationMap.put("T_Wave_Offset", globalMeasurements.getToff());
 		annotationMap.put("QRS Initial Angle", globalMeasurements.getQrsinitangle());
 		annotationMap.put("QRS Initial Magnitude", globalMeasurements.getQrsinitmag());
 		annotationMap.put("QRS Maximum Angle", globalMeasurements.getQrsmaxangle());
@@ -138,9 +138,9 @@ public class Philips103AnnotationsExtractor extends PhilipsAnnotationsExtractor 
 		Signalcharacteristics signalProperties = (Signalcharacteristics)dataAcquisition.getSignalcharacteristics();
 		
 		if(signalProperties.getLeadset() != null){
-			dataMappings.put("Lead Set", signalProperties.getLeadset().toString());	
+			dataMappings.put("Lead_Placement", signalProperties.getLeadset().toString());	
 		}else{
-			dataMappings.put("Lead Set", null);
+			dataMappings.put("Lead_Placement", null);
 		}
 		
 		this.commomDataAcquisition(dataAcquisition, new Philips103Acquirer(acquirer), new Philips103SignalCharacteristics(signalProperties), dataMappings);
