@@ -19,5 +19,4 @@
   <classpathentry kind="src" path="/Phlilips1.04"/>
   <classpathentry kind="src" path="/schiller-data"/>
   <classpathentry kind="var" path="M2_REPO/hl7OrgV3/aecg/1.0/aecg-1.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/cvrgrid/philips/philips1.04/1.0-SNAPSHOT/philips1.04-1.0-SNAPSHOT.jar"/>
 </classpath>
