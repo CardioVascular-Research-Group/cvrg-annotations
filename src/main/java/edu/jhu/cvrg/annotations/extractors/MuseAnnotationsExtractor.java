@@ -16,6 +16,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 import edu.jhu.cvrg.annotations.utilities.LeadEnum;
+import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
 import edu.jhu.cvrg.annotations.wrapper.muse.QRSTime;
 
 public class MuseAnnotationsExtractor extends AnnotationsExtractor {
@@ -79,7 +80,7 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		
 	}
 	
-	public MuseAnnotationsExtractor(String xmlInput) {
+	public MuseAnnotationsExtractor(String xmlInput) throws AnnotationExtractorException{
 		try {
 			Document xmlDoc  = buildDOM(xmlInput);
 		
@@ -99,7 +100,7 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 			}
 			
 		} catch (JDOMException e) {
-			e.printStackTrace();
+			throw new AnnotationExtractorException(e.getMessage(), e);
 		}
 	}
 	

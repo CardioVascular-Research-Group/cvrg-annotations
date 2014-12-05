@@ -3,6 +3,7 @@ package edu.jhu.cvrg.annotations.processors;
 import org.apache.log4j.Logger;
 
 import edu.jhu.cvrg.annotations.extractors.MuseAnnotationsExtractor;
+import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
 
 /*
 Copyright 2014 Johns Hopkins University Institute for Computational Medicine
@@ -30,7 +31,7 @@ public class MuseAnnotationsProcessor extends AnnotationsProcessor {
 	
 	private static final String MUSE_NAME = "Muse Upload";
 	
-	public MuseAnnotationsProcessor(String xmlInput, Long documentId, Long userID) {
+	public MuseAnnotationsProcessor(String xmlInput, Long documentId, Long userID) throws AnnotationExtractorException{
 		super();
 		extractor = new MuseAnnotationsExtractor(xmlInput);
 		log = Logger.getLogger(MuseAnnotationsProcessor.class);
