@@ -3,6 +3,8 @@ package edu.jhu.cvrg.annotations.extractors;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,16 +20,23 @@ import org.jdom.input.SAXBuilder;
 import edu.jhu.cvrg.annotations.utilities.LeadEnum;
 import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
 import edu.jhu.cvrg.annotations.wrapper.muse.QRSTime;
+import edu.jhu.icm.parser.Base64;
 
 public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 
 	private Element restingECGElement;
 	private Element qrsTimeTypesElement;
 	private List waveformElements;
+	private Element measurementMatrixElement;
 	
 	private static Map<String, String> RESTING_ECG_TAG2EXTRACT;
 	private static Map<String, String> WAVEFORM_TAG2EXTRACT;
 	private static Map<String, String> LEAD_TAG2EXTRACT;
+	
+	private static Map<Integer, String> GLOBAL_MEASUREMENTS;
+	private static Map<Integer, String> PER_LEAD_MEASUREMENT;
+	//I, II, V1, V2, V3, V4, V5, V6, III, AVR,AVL, AVF
+	private static LeadEnum[] MEASUREMENT_LEAD_ORDER = {LeadEnum.I, LeadEnum.II, LeadEnum.V1, LeadEnum.V2, LeadEnum.V3, LeadEnum.V4, LeadEnum.V5, LeadEnum.V6, LeadEnum.III, LeadEnum.aVR, LeadEnum.aVL, LeadEnum.aVF};
 	
 	
 	private Map<Integer, Map<String, String>> leadAnnotations = new HashMap<Integer, Map<String, String>>();
@@ -78,6 +87,83 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		LEAD_TAG2EXTRACT.put("MuscleNoise", 			"Muscle_Noise");
 		LEAD_TAG2EXTRACT.put("LeadDataCRC32", 			"Lead_Data_CRC_32");
 		
+		GLOBAL_MEASUREMENTS = new HashMap<Integer, String>();
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(1), "P-wave onset in median beat (in samples)"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(2), "P-wave offset in median beat"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(3), "Q-Onset in median beat"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(4), "Q-Offset in median beat"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(5), "T-Onset in median beat"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(6), "T-Offset in median beat"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(7), "Number of QRS Complexes"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(8), "QRS Duration"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(9), "QT Interval"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(10), "QT Corrected"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(11), "PR Interval"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(12), "Ventricular Rate"); 
+		GLOBAL_MEASUREMENTS.put(Integer.valueOf(13), "Average R-R Interval"); 
+		
+		PER_LEAD_MEASUREMENT = new HashMap<Integer, String>();
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(1), "P Wave amplitude at P-onset"); //PONA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(2), "P wave amplitude"); //PAMP 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(3), "P wave duration"); //PDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(4), "P wave area"); //bmPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(5), "P wave intrinsicoid (time from P onset to peak of P)"); //bmPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(6), "P Prime amplitude"); //P'AMP 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(7), "P Prime duration"); //P'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(8), "P Prime area"); //bmPPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(9), "P Prime intrinsicoid (time from P onset to peak of P')"); //bmPPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(10), "Q wave amplitude"); //QAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(11), "Q wave duration"); //QDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(12), "Q wave area"); //bmQAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(13), "Q intrinsicoid (time from Q onset to peak of Q)"); //bmQI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(14), "R amplitude"); //RAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(15), "R duration"); //RDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(16), "R wave area"); //bmRAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(17), "R intrinsicoid (time from R onset to peak of R)"); //bmRI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(18), "S amplitude"); //SAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(19), "S duration"); //SDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(20), "S wave area"); //bmSAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(21), "S intrinsicoid (time from Q onset to peak of S)"); //bmSI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(22), "R Prime amplitude"); //R'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(23), "R Prime duration"); //R'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(24), "R Prime wave area"); //bmRPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(25), "R Prime intrinsicoid (time from Q onset to peak of R Prime)"); //bmRPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(26), "S Prime Amplitude"); //S'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(27), "S Prime Duration"); //S'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(28), "S Prime wave area"); //bmSPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(29), "S intriniscoid (time from Q onset to peak of S prime)"); //bmSPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(30), "STJ point, End of QRS Point Amplitude"); //STJ
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(31), "STM point, Middle of the ST Segment Amplitude"); //STM 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(32), "STE point, End of ST Segment Amplitude"); //STE 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(33), "Maximum of STJ, STM, STE Amplitudes"); //MXSTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(34), "Minimum of STJ and STM Amplitudes"); //MNSTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(35), "Special T-Wave amplitude"); //SPTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(36), "Total QRS area"); //QRSA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(37), "QRS Deflection"); //QRSDEF 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(38), "Maximum R Amplitude (R or R Prime)"); //MAXRA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(39), "Maximum S Amplitude (S or S Prime)"); //MAXSA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(40), "T amplitude"); //TAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(41), "T duration"); //TDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(42), "T wave area"); //bmTAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(43), "T intriniscoid (time from STE to peak of T)"); //bmTI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(44), "T Prime amplitude"); //T'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(45), "T Prime duration"); //TPDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(46), "T Prime area"); //bmTPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(47), "T Prime intriniscoid (time from STE to peak of T)"); //bmTPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(48), "T Amplitude at T offset"); //TEND
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(49), "P wave area, includes P and P Prime"); //PAREA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(50), "QRS area"); //QRSAR
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(51), "T wave area, include T and T Prime"); //TAREA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(52), "QRS intriniscoid (see below)"); //QRSINT
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-0), ""); //[53]BITFLG \\ Bitmask sum of (values) decoded as follows:
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-1), ""); //Bit 1 (2) :TTAL- Peak of T > ST measurement
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-2), ""); //Bit 2 (4) :STDOWN- ST Segment Depressed
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-3), ""); //Bit 3 (8) :STELEV- ST Segment Elevated
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-4), ""); //Bit 4 (16) :JELEV- J point Elevated by 100uV
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-5), ""); //Bit 5 (32) :DLTWV- Delta-Wave Detected
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-6), ""); //Bit 6 (64) :STINJ- ST Segment Elevated
+//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-7), ""); //Bit 7 (128):PPDEEP- P Prime Area was 1000uV*ms
+		
 	}
 	
 	public MuseAnnotationsExtractor(String xmlInput) throws AnnotationExtractorException{
@@ -85,19 +171,12 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 			Document xmlDoc  = buildDOM(xmlInput);
 		
 			restingECGElement = xmlDoc.getRootElement().getChild("RestingECGMeasurements");
-			if(restingECGElement == null) {
-				throw new JDOMException("Unable to parse the RestingECGMeasuremens element!");
-			}
 			
 			qrsTimeTypesElement = xmlDoc.getRootElement().getChild("QRSTimesTypes");
-			if(qrsTimeTypesElement == null) {
-				throw new JDOMException("Unable to parse the QRSTimesTypes element!");
-			}
 			
 			waveformElements = xmlDoc.getRootElement().getChildren("Waveform");
-			if(waveformElements.isEmpty()) {
-				throw new JDOMException("Unable to find any Waveform elements of any kind!");
-			}
+			
+			measurementMatrixElement = xmlDoc.getRootElement().getChild("MeasurementMatrix");
 			
 		} catch (JDOMException e) {
 			throw new AnnotationExtractorException(e.getMessage(), e);
@@ -107,6 +186,12 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 	public void extractAll(){
 		globalAnnotations.putAll(extractRestingECGAnnotation());
 		globalAnnotations.putAll(extractWaveformMetadata());
+		try {
+			extractMeasurementMatrix();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	
@@ -114,23 +199,26 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		
 		LinkedHashMap<String, String> annotationMap = new LinkedHashMap<String, String>();
 		
-		// get each child element and store it in the appropriate variable
-		List allChildren = restingECGElement.getChildren();
-		
-		if(!(allChildren.isEmpty())) {
-			for (Object child : allChildren) {
-				Element childElement = (Element) child;
-			    if(childElement != null) {	
-			    	// determine which tag it is and add it to the appropriate variable
-			    	if(RESTING_ECG_TAG2EXTRACT.containsKey(childElement.getName())){
-			    		String value = childElement.getText();
-			    		if(value != null){
-			    			annotationMap.put(RESTING_ECG_TAG2EXTRACT.get(childElement.getName()), value);
-			    		}
-			    	}
-			    }
+		if(restingECGElement != null){
+			// get each child element and store it in the appropriate variable
+			List allChildren = restingECGElement.getChildren();
+			
+			if(!(allChildren.isEmpty())) {
+				for (Object child : allChildren) {
+					Element childElement = (Element) child;
+				    if(childElement != null) {	
+				    	// determine which tag it is and add it to the appropriate variable
+				    	if(RESTING_ECG_TAG2EXTRACT.containsKey(childElement.getName())){
+				    		String value = childElement.getText();
+				    		if(value != null){
+				    			annotationMap.put(RESTING_ECG_TAG2EXTRACT.get(childElement.getName()), value);
+				    		}
+				    	}
+				    }
+				}
 			}
 		}
+		
 		return annotationMap;
 	}
 	/**
@@ -139,32 +227,76 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 	private void extractQRSTimesTypes() {
 		
 		List<QRSTime> qrsTimes = new ArrayList<QRSTime>();
-		String globalRR, qtrGGR;
 		
-		// get each child element and store it in the appropriate variable
-		List allChildren = qrsTimeTypesElement.getChildren();
+		if(qrsTimeTypesElement != null){
+			String globalRR, qtrGGR;
+			
+			// get each child element and store it in the appropriate variable
+			List allChildren = qrsTimeTypesElement.getChildren();
+			
+			if(!(allChildren.isEmpty())) {
+				for (Object child : allChildren) {
+					Element childElement = (Element) child;
+				    if(childElement != null) {	
+				    	// determine which tag it is and add it to the appropriate variable
+						if(childElement.getName().equals("QRS")) {
+							// TODO:  Capture the QRS data types
+							List qrsDataMembers = childElement.getChildren();
+							for(Object qrsData : qrsDataMembers) {
+								Element qrsElement = (Element) qrsData;
+								QRSTime newQRS = new QRSTime(qrsElement.getChildText("Number"), qrsElement.getChildText("Type"), qrsElement.getChildText("Time"));
+								qrsTimes.add(newQRS);
+							}
+						}
+						else if(childElement.getName().equals("GlobalRR")) {
+							globalRR = childElement.getText();
+						}
+						else if(childElement.getName().equals("QTRGGR")) {
+							qtrGGR = childElement.getText();
+						}
+				    }
+				}
+			}
+		}
+	}
+	
+	private void extractMeasurementMatrix() throws IOException{
 		
-		if(!(allChildren.isEmpty())) {
-			for (Object child : allChildren) {
-				Element childElement = (Element) child;
-			    if(childElement != null) {	
-			    	// determine which tag it is and add it to the appropriate variable
-					if(childElement.getName().equals("QRS")) {
-						// TODO:  Capture the QRS data types
-						List qrsDataMembers = childElement.getChildren();
-						for(Object qrsData : qrsDataMembers) {
-							Element qrsElement = (Element) qrsData;
-							QRSTime newQRS = new QRSTime(qrsElement.getChildText("Number"), qrsElement.getChildText("Type"), qrsElement.getChildText("Time"));
-							qrsTimes.add(newQRS);
+		if(measurementMatrixElement != null){
+			String base64String = measurementMatrixElement.getText();
+			
+			if(base64String != null){
+				byte[] encodedBytes = base64String.getBytes();
+				
+				byte[] uncodedDataByte = Base64.decode( encodedBytes );
+				ByteBuffer bb = ByteBuffer.allocate(2);
+				bb.order(ByteOrder.nativeOrder());
+				int globalIndex = 0;
+				for (int t = 0, len = uncodedDataByte.length; t < len; t+=2) {
+					if(globalIndex < 18){
+						double doubleVal = (double)(((uncodedDataByte[t+1])<<8) | (uncodedDataByte[t] & 0xFF));
+						//doubleVal = doubleVal * 4.88;
+						if(GLOBAL_MEASUREMENTS.containsKey(globalIndex)){
+							globalAnnotations.put(GLOBAL_MEASUREMENTS.get(globalIndex), String.valueOf(doubleVal));
+						}
+						globalIndex++;
+					}else{
+						Integer leadId = (int)(uncodedDataByte[t] & 0xFF);
+						Integer measurementId = (int)(uncodedDataByte[t+1] & 0xFF);
+						double doubleVal = (double)(((uncodedDataByte[t+3])<<8) | (uncodedDataByte[t+2] & 0xFF));
+						t+=2;
+						
+						Map<String, String> leadMap = leadAnnotations.get(MEASUREMENT_LEAD_ORDER[leadId].ordinal());
+						
+						if(leadMap == null){
+							leadAnnotations.put(MEASUREMENT_LEAD_ORDER[leadId].ordinal(), new HashMap<String, String>());
+						}
+						
+						if(PER_LEAD_MEASUREMENT.containsKey(measurementId)){
+							leadMap.put(PER_LEAD_MEASUREMENT.get(measurementId), String.valueOf(doubleVal));
 						}
 					}
-					else if(childElement.getName().equals("GlobalRR")) {
-						globalRR = childElement.getText();
-					}
-					else if(childElement.getName().equals("QTRGGR")) {
-						qtrGGR = childElement.getText();
-					}
-			    }
+				}
 			}
 		}
 	}
@@ -173,60 +305,62 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 	private LinkedHashMap<String, String> extractWaveformMetadata() {
 		
 		LinkedHashMap<String, String> annotationMap = new LinkedHashMap<String, String>();
+
+		if(waveformElements != null){
 		
-		Element waveform = null;
-		Iterator waveformIter = waveformElements.iterator();
-		while(waveformIter.hasNext()) {
-			waveform = (Element)waveformIter.next();
-			Element waveformType = waveform.getChild("WaveformType");
-			
-			// Check to make sure there are valid waveforms, then send the Waveform tag to the appropriate object for parsing
-			if((waveformType != null) && (waveformType.getText().equals("Rhythm"))) {
-				break;
-			}
-		}
-		
-		if(waveform != null){
-			ArrayList<String> ACFilters = new ArrayList<String>();
-			
-			// get each child element and store it in the appropriate variable
-			List allChildren = waveform.getChildren();
-			
-			if(!(allChildren.isEmpty())) {
-				for (Object child : allChildren) {
-					Element childElement = (Element) child;
-				    if(childElement != null) {	
-				    	
-				    	if(WAVEFORM_TAG2EXTRACT.containsKey(childElement.getName())){
-				    		String value = childElement.getText();
-				    		if(value != null){
-				    			annotationMap.put(WAVEFORM_TAG2EXTRACT.get(childElement.getName()), value);
-				    		}
-				    		
-				    	}else if(childElement.getName().equals("ACFilter")) {
-							// TODO:  Get each AC Filter and add it to the list of total AC Filters
-							ACFilters.add(childElement.getText());
-							
-						}else if(childElement.getName().equals("LeadData")) {
-							// TODO:  Get a specific Lead and then add it to the LeadData hashmap
-							this.extractLeadData(childElement);
-						}else if(childElement.getName().equals("PaceSpikes")) {
-							// TODO:  Get everything under the PaceSpikes element and place it in an object
-							// TODO:  Figure out a way to handle this complex type
-						}
-				    }
-				}
-			}
-			
-			if(!(ACFilters.isEmpty())) {
-				int counter = 1;
+			Element waveform = null;
+			Iterator waveformIter = waveformElements.iterator();
+			while(waveformIter.hasNext()) {
+				waveform = (Element)waveformIter.next();
+				Element waveformType = waveform.getChild("WaveformType");
 				
-				for(String filter : ACFilters) {
-					annotationMap.put("AC_Filter #" + counter, filter);
+				// Check to make sure there are valid waveforms, then send the Waveform tag to the appropriate object for parsing
+				if((waveformType != null) && (waveformType.getText().equals("Rhythm"))) {
+					break;
+				}
+			}
+			
+			if(waveform != null){
+				ArrayList<String> ACFilters = new ArrayList<String>();
+				
+				// get each child element and store it in the appropriate variable
+				List allChildren = waveform.getChildren();
+				
+				if(!(allChildren.isEmpty())) {
+					for (Object child : allChildren) {
+						Element childElement = (Element) child;
+					    if(childElement != null) {	
+					    	
+					    	if(WAVEFORM_TAG2EXTRACT.containsKey(childElement.getName())){
+					    		String value = childElement.getText();
+					    		if(value != null){
+					    			annotationMap.put(WAVEFORM_TAG2EXTRACT.get(childElement.getName()), value);
+					    		}
+					    		
+					    	}else if(childElement.getName().equals("ACFilter")) {
+								// TODO:  Get each AC Filter and add it to the list of total AC Filters
+								ACFilters.add(childElement.getText());
+								
+							}else if(childElement.getName().equals("LeadData")) {
+								// TODO:  Get a specific Lead and then add it to the LeadData hashmap
+								this.extractLeadData(childElement);
+							}else if(childElement.getName().equals("PaceSpikes")) {
+								// TODO:  Get everything under the PaceSpikes element and place it in an object
+								// TODO:  Figure out a way to handle this complex type
+							}
+					    }
+					}
+				}
+				
+				if(!(ACFilters.isEmpty())) {
+					int counter = 1;
+					
+					for(String filter : ACFilters) {
+						annotationMap.put("AC_Filter #" + counter, filter);
+					}
 				}
 			}
 		}
-		
 		
 		return annotationMap;
 	}
