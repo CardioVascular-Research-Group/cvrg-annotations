@@ -3,14 +3,15 @@ package edu.jhu.cvrg.annotations.extractors;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -20,13 +21,12 @@ import org.jdom.input.SAXBuilder;
 import edu.jhu.cvrg.annotations.utilities.LeadEnum;
 import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
 import edu.jhu.cvrg.annotations.wrapper.muse.QRSTime;
-import edu.jhu.icm.parser.Base64;
 
 public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 
 	private Element restingECGElement;
 	private Element qrsTimeTypesElement;
-	private List waveformElements;
+	private List<Element> waveformElements;
 	private Element measurementMatrixElement;
 	
 	private static Map<String, String> RESTING_ECG_TAG2EXTRACT;
@@ -35,6 +35,7 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 	
 	private static Map<Integer, String> GLOBAL_MEASUREMENTS;
 	private static Map<Integer, String> PER_LEAD_MEASUREMENT;
+	private static Map<Integer, String> PER_LEAD_MEASUREMENT_BITMASK;
 	//I, II, V1, V2, V3, V4, V5, V6, III, AVR,AVL, AVF
 	private static LeadEnum[] MEASUREMENT_LEAD_ORDER = {LeadEnum.I, LeadEnum.II, LeadEnum.V1, LeadEnum.V2, LeadEnum.V3, LeadEnum.V4, LeadEnum.V5, LeadEnum.V6, LeadEnum.III, LeadEnum.aVR, LeadEnum.aVL, LeadEnum.aVF};
 	
@@ -103,66 +104,68 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		GLOBAL_MEASUREMENTS.put(Integer.valueOf(13), "Average R-R Interval"); 
 		
 		PER_LEAD_MEASUREMENT = new HashMap<Integer, String>();
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(1), "P Wave amplitude at P-onset"); //PONA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(2), "P wave amplitude"); //PAMP 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(3), "P wave duration"); //PDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(4), "P wave area"); //bmPAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(5), "P wave intrinsicoid (time from P onset to peak of P)"); //bmPI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(6), "P Prime amplitude"); //P'AMP 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(7), "P Prime duration"); //P'DUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(8), "P Prime area"); //bmPPAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(9), "P Prime intrinsicoid (time from P onset to peak of P')"); //bmPPI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(10), "Q wave amplitude"); //QAMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(11), "Q wave duration"); //QDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(12), "Q wave area"); //bmQAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(13), "Q intrinsicoid (time from Q onset to peak of Q)"); //bmQI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(14), "R amplitude"); //RAMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(15), "R duration"); //RDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(16), "R wave area"); //bmRAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(17), "R intrinsicoid (time from R onset to peak of R)"); //bmRI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(18), "S amplitude"); //SAMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(19), "S duration"); //SDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(20), "S wave area"); //bmSAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(21), "S intrinsicoid (time from Q onset to peak of S)"); //bmSI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(22), "R Prime amplitude"); //R'AMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(23), "R Prime duration"); //R'DUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(24), "R Prime wave area"); //bmRPAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(25), "R Prime intrinsicoid (time from Q onset to peak of R Prime)"); //bmRPI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(26), "S Prime Amplitude"); //S'AMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(27), "S Prime Duration"); //S'DUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(28), "S Prime wave area"); //bmSPAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(29), "S intriniscoid (time from Q onset to peak of S prime)"); //bmSPI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(30), "STJ point, End of QRS Point Amplitude"); //STJ
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(31), "STM point, Middle of the ST Segment Amplitude"); //STM 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(32), "STE point, End of ST Segment Amplitude"); //STE 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(33), "Maximum of STJ, STM, STE Amplitudes"); //MXSTA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(34), "Minimum of STJ and STM Amplitudes"); //MNSTA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(35), "Special T-Wave amplitude"); //SPTA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(36), "Total QRS area"); //QRSA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(37), "QRS Deflection"); //QRSDEF 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(38), "Maximum R Amplitude (R or R Prime)"); //MAXRA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(39), "Maximum S Amplitude (S or S Prime)"); //MAXSA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(40), "T amplitude"); //TAMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(41), "T duration"); //TDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(42), "T wave area"); //bmTAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(43), "T intriniscoid (time from STE to peak of T)"); //bmTI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(44), "T Prime amplitude"); //T'AMP
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(45), "T Prime duration"); //TPDUR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(46), "T Prime area"); //bmTPAR 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(47), "T Prime intriniscoid (time from STE to peak of T)"); //bmTPI 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(48), "T Amplitude at T offset"); //TEND
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(49), "P wave area, includes P and P Prime"); //PAREA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(50), "QRS area"); //QRSAR
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(51), "T wave area, include T and T Prime"); //TAREA 
-		PER_LEAD_MEASUREMENT.put(Integer.valueOf(52), "QRS intriniscoid (see below)"); //QRSINT
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-0), ""); //[53]BITFLG \\ Bitmask sum of (values) decoded as follows:
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-1), ""); //Bit 1 (2) :TTAL- Peak of T > ST measurement
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-2), ""); //Bit 2 (4) :STDOWN- ST Segment Depressed
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-3), ""); //Bit 3 (8) :STELEV- ST Segment Elevated
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-4), ""); //Bit 4 (16) :JELEV- J point Elevated by 100uV
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-5), ""); //Bit 5 (32) :DLTWV- Delta-Wave Detected
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-6), ""); //Bit 6 (64) :STINJ- ST Segment Elevated
-//		PER_LEAD_MEASUREMENT.put(Integer.valueOf(53-7), ""); //Bit 7 (128):PPDEEP- P Prime Area was 1000uV*ms
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(0), "P Wave amplitude at P-onset"); //PONA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(1), "P wave amplitude"); //PAMP 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(2), "P wave duration"); //PDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(3), "P wave area"); //bmPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(4), "P wave intrinsicoid (time from P onset to peak of P)"); //bmPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(5), "P Prime amplitude"); //P'AMP 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(6), "P Prime duration"); //P'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(7), "P Prime area"); //bmPPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(8), "P Prime intrinsicoid (time from P onset to peak of P')"); //bmPPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(9), "Q wave amplitude"); //QAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(10), "Q wave duration"); //QDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(11), "Q wave area"); //bmQAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(12), "Q intrinsicoid (time from Q onset to peak of Q)"); //bmQI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(13), "R amplitude"); //RAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(14), "R duration"); //RDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(15), "R wave area"); //bmRAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(16), "R intrinsicoid (time from R onset to peak of R)"); //bmRI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(17), "S amplitude"); //SAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(18), "S duration"); //SDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(19), "S wave area"); //bmSAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(20), "S intrinsicoid (time from Q onset to peak of S)"); //bmSI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(21), "R Prime amplitude"); //R'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(22), "R Prime duration"); //R'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(23), "R Prime wave area"); //bmRPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(24), "R Prime intrinsicoid (time from Q onset to peak of R Prime)"); //bmRPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(25), "S Prime Amplitude"); //S'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(26), "S Prime Duration"); //S'DUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(27), "S Prime wave area"); //bmSPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(28), "S intriniscoid (time from Q onset to peak of S prime)"); //bmSPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(29), "STJ point, End of QRS Point Amplitude"); //STJ
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(30), "STM point, Middle of the ST Segment Amplitude"); //STM 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(31), "STE point, End of ST Segment Amplitude"); //STE 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(32), "Maximum of STJ, STM, STE Amplitudes"); //MXSTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(33), "Minimum of STJ and STM Amplitudes"); //MNSTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(34), "Special T-Wave amplitude"); //SPTA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(35), "Total QRS area"); //QRSA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(36), "QRS Deflection"); //QRSDEF 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(37), "Maximum R Amplitude (R or R Prime)"); //MAXRA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(38), "Maximum S Amplitude (S or S Prime)"); //MAXSA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(39), "T amplitude"); //TAMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(40), "T duration"); //TDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(41), "T wave area"); //bmTAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(42), "T intriniscoid (time from STE to peak of T)"); //bmTI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(43), "T Prime amplitude"); //T'AMP
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(44), "T Prime duration"); //TPDUR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(45), "T Prime area"); //bmTPAR 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(46), "T Prime intriniscoid (time from STE to peak of T)"); //bmTPI 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(47), "T Amplitude at T offset"); //TEND
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(48), "P wave area, includes P and P Prime"); //PAREA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(49), "QRS area"); //QRSAR
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(50), "T wave area, include T and T Prime"); //TAREA 
+		PER_LEAD_MEASUREMENT.put(Integer.valueOf(51), "QRS intriniscoid (see below)"); //QRSINT
+		
+//		[52]BITFLG \\ Bitmask sum of (values) decoded as follows:		
+		PER_LEAD_MEASUREMENT_BITMASK = new TreeMap<Integer, String>();
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(2), "TTAL-Peak of T > ST measurement"); //		Bit 1 (2) TTAL 		= 0001100111010011 & 		10 =  0000000000000010 > 0 ? = T  
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(4), "STDOWN-ST Segment Depressed"); //			Bit 2 (4) STDOWN 	= 0001100111010011 & 	   100 =  0000000000000000 > 0 ? = F
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(8), "STELEV-ST Segment Elevated"); //			Bit 3 (8) STELEV	= 0001100111010011 & 	  1000 =  0000000000000000 > 0 ? = F
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(16), "JELEV-J point Elevated by 100uV"); //	Bit 4 (16) JELEV 	= 0001100111010011 & 	 10000 =  0000000000010000 > 0 ? = T
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(32), "DLTWV-Delta-Wave Detected"); //			Bit 5 (32) DLTWV 	= 0001100111010011 & 	100000 =  0000000000000000 > 0 ? = F
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(64), "STINJ-ST Segment Elevated"); //			Bit 6 (64) STINJ 	= 0001100111010011 &   1000000 =  0000000001000000 > 0 ? = T
+		PER_LEAD_MEASUREMENT_BITMASK.put(Integer.valueOf(128), "PPDEEP-P Prime Area was 1000uV*ms"); //	Bit 7 (128)PPDEEP	= 0001100111010011 &  10000000 =  0000000010000000 > 0 ? = T
 		
 	}
 	
@@ -183,15 +186,17 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		}
 	}
 	
-	public void extractAll(){
+	public void extractAll() throws AnnotationExtractorException{
 		globalAnnotations.putAll(extractRestingECGAnnotation());
 		globalAnnotations.putAll(extractWaveformMetadata());
 		try {
 			extractMeasurementMatrix();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (AnnotationExtractorException e) {
+			throw e;
+		} catch (Exception e){
+			throw new AnnotationExtractorException("Unknow error", e);
 		}
+		
 	}
 
 	
@@ -260,40 +265,67 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 		}
 	}
 	
-	private void extractMeasurementMatrix() throws IOException{
+	private void extractMeasurementMatrix() throws AnnotationExtractorException{
 		
 		if(measurementMatrixElement != null){
 			String base64String = measurementMatrixElement.getText();
 			
 			if(base64String != null){
-				byte[] encodedBytes = base64String.getBytes();
+				byte[] decoded = DatatypeConverter.parseBase64Binary(base64String);
 				
-				byte[] uncodedDataByte = Base64.decode( encodedBytes );
-				ByteBuffer bb = ByteBuffer.allocate(2);
-				bb.order(ByteOrder.nativeOrder());
 				int globalIndex = 0;
-				for (int t = 0, len = uncodedDataByte.length; t < len; t+=2) {
-					if(globalIndex < 18){
-						double doubleVal = (double)(((uncodedDataByte[t+1])<<8) | (uncodedDataByte[t] & 0xFF));
+				
+				int t = 0;
+				int TOTAL_BYTES = 2580;//LENGHT WITHOUT HEADER, based on doc version 7
+				
+				if(decoded.length > TOTAL_BYTES){
+					t+=8;//skip the initial header(8 bytes), for older versions
+				}
+				
+				//Byte array validations
+				boolean valid = true;
+				//First fixed value, 36 - with the global data length in bytes
+				short value = (short)(decoded[t+1] << 8 | decoded[t] & 0xFF);
+				if(value != 36){
+					valid = false;
+				}
+				//Second fixed value, 636 - (53*12) Decimal Number of Columns*Number of Leads
+				value = (short)(decoded[t+35] << 8 | decoded[t+34] & 0xFF);
+				if(value != 636){
+					valid = false;
+				}
+				
+				if(!valid){
+					throw new AnnotationExtractorException("Invalid Measurement Matrix, skiped.");
+				}
+				
+				for (; t < decoded.length; t+=2) {
+					if(globalIndex < 18){;
+						value = (short)(decoded[t+1] << 8 | decoded[t] & 0xFF);
 						//doubleVal = doubleVal * 4.88;
 						if(GLOBAL_MEASUREMENTS.containsKey(globalIndex)){
-							globalAnnotations.put(GLOBAL_MEASUREMENTS.get(globalIndex), String.valueOf(doubleVal));
+							globalAnnotations.put(GLOBAL_MEASUREMENTS.get(globalIndex), String.valueOf(value));
 						}
 						globalIndex++;
 					}else{
-						Integer leadId = (int)(uncodedDataByte[t] & 0xFF);
-						Integer measurementId = (int)(uncodedDataByte[t+1] & 0xFF);
-						double doubleVal = (double)(((uncodedDataByte[t+3])<<8) | (uncodedDataByte[t+2] & 0xFF));
+						Integer leadId = (int)(decoded[t]);
+						Integer measurementId = (int)(decoded[t+1]);
+						value = (short)(decoded[t+3] << 8 | decoded[t+2] & 0xFF);
 						t+=2;
 						
 						Map<String, String> leadMap = leadAnnotations.get(MEASUREMENT_LEAD_ORDER[leadId].ordinal());
 						
 						if(leadMap == null){
 							leadAnnotations.put(MEASUREMENT_LEAD_ORDER[leadId].ordinal(), new HashMap<String, String>());
+							leadMap = leadAnnotations.get(MEASUREMENT_LEAD_ORDER[leadId].ordinal());
 						}
 						
 						if(PER_LEAD_MEASUREMENT.containsKey(measurementId)){
-							leadMap.put(PER_LEAD_MEASUREMENT.get(measurementId), String.valueOf(doubleVal));
+							leadMap.put(PER_LEAD_MEASUREMENT.get(measurementId), String.valueOf(value));
+						}else if(measurementId == 52){//BITFLAG
+							for(Integer k : PER_LEAD_MEASUREMENT_BITMASK.keySet()){
+								leadMap.put(PER_LEAD_MEASUREMENT_BITMASK.get(k), (value & k) > 0 ? "True" : "False"); 
+							}
 						}
 					}
 				}

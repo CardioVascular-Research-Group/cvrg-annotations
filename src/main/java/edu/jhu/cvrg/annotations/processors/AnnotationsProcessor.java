@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
+
 /*
 Copyright 2014 Johns Hopkins University Institute for Computational Medicine
 
@@ -46,13 +48,13 @@ public abstract class AnnotationsProcessor {
 		return leadsAnnotations;
 	}
 
-	public abstract void populateAnnotations();
+	public abstract void populateAnnotations() throws AnnotationExtractorException;
 	
 	public abstract void processLeadAnnotations();
 	
 	public abstract void processGlobalAnnotations();
 	
-	public void processAll(){
+	public void processAll() throws AnnotationExtractorException{
 		this.populateAnnotations();
 		this.processGlobalAnnotations();
 		this.processLeadAnnotations();

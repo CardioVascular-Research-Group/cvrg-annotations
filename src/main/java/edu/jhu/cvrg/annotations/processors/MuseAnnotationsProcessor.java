@@ -40,7 +40,7 @@ public class MuseAnnotationsProcessor extends AnnotationsProcessor {
 	}
 	
 	@Override
-	public void populateAnnotations() {
+	public void populateAnnotations() throws AnnotationExtractorException{
 		extractor.extractAll();
 	}
 	

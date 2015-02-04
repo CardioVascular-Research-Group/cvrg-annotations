@@ -7,4 +7,9 @@ public class AnnotationExtractorException extends Exception {
 	public AnnotationExtractorException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	public AnnotationExtractorException(String message){
+		super(message);
+	}
+	
 }
