@@ -18,9 +18,9 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
-import edu.jhu.cvrg.annotations.utilities.LeadEnum;
 import edu.jhu.cvrg.annotations.utilities.exceptions.AnnotationExtractorException;
 import edu.jhu.cvrg.annotations.wrapper.muse.QRSTime;
+import edu.jhu.icm.enums.LeadEnum;
 
 public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 
@@ -37,7 +37,7 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 	private static Map<Integer, String> PER_LEAD_MEASUREMENT;
 	private static Map<Integer, String> PER_LEAD_MEASUREMENT_BITMASK;
 	//I, II, V1, V2, V3, V4, V5, V6, III, AVR,AVL, AVF
-	private static LeadEnum[] MEASUREMENT_LEAD_ORDER = {LeadEnum.I, LeadEnum.II, LeadEnum.V1, LeadEnum.V2, LeadEnum.V3, LeadEnum.V4, LeadEnum.V5, LeadEnum.V6, LeadEnum.III, LeadEnum.aVR, LeadEnum.aVL, LeadEnum.aVF};
+	private static LeadEnum[] MEASUREMENT_LEAD_ORDER = {LeadEnum.I, LeadEnum.II, LeadEnum.V1, LeadEnum.V2, LeadEnum.V3, LeadEnum.V4, LeadEnum.V5, LeadEnum.V6, LeadEnum.III, LeadEnum.AVR, LeadEnum.AVL, LeadEnum.AVF};
 	
 	
 	private Map<Integer, Map<String, String>> leadAnnotations = new HashMap<Integer, Map<String, String>>();
@@ -419,7 +419,7 @@ public class MuseAnnotationsExtractor extends AnnotationsExtractor {
 			    		}
 			    		
 			    	}else if(childElement.getName().equals("LeadID")) {
-						leadID = LeadEnum.valueOf(childElement.getText()).ordinal();
+						leadID = LeadEnum.valueOf(childElement.getText().toUpperCase()).ordinal();
 					}
 				}
 			}
