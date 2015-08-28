@@ -206,7 +206,7 @@ public class AppTest extends TestCase{
 			}else if(fileFormat.MUSEXML.equals(inputFormat)) {
 				String rawMuseXML = conv.getMuseRawXML();
 				if(rawMuseXML != null) {
-					processor = new MuseAnnotationsProcessor(rawMuseXML, docId, userId);
+					processor = new MuseAnnotationsProcessor(rawMuseXML, docId);
 				}
 			}
 			

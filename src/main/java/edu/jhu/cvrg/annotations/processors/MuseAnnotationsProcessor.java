@@ -31,7 +31,7 @@ public class MuseAnnotationsProcessor extends AnnotationsProcessor {
 	
 	private static final String MUSE_NAME = "Muse Upload";
 	
-	public MuseAnnotationsProcessor(String xmlInput, Long documentId, Long userID) throws AnnotationExtractorException{
+	public MuseAnnotationsProcessor(String xmlInput, Long documentId) throws AnnotationExtractorException{
 		super();
 		extractor = new MuseAnnotationsExtractor(xmlInput);
 		log = Logger.getLogger(MuseAnnotationsProcessor.class);
